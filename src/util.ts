@@ -79,6 +79,10 @@ export const RESPONSE_BODY_LENGTH_DEFAULT = 1024;
  */
 export const RESPONSE_BODY_LENGTH_MAX = 1024 * 1024;
 
+export const JSON_JAVASCRIPT_SAMPLE = "function evaluate(jsonObj) {\n" +
+    "  return { success: false, message: \"error response\" };\n" +
+    "}";
+
 // Console colors
 // https://stackoverflow.com/questions/9781218/how-to-change-node-jss-console-font-color
 export const CONSOLE_STYLE_Reset = "\x1b[0m";
@@ -461,20 +465,20 @@ export function getRandomInt(min: number, max: number) {
 const getRandomBytes = (
     typeof window !== "undefined" && window.crypto
         ? // Browsers
-          function () {
-              return (numBytes: number) => {
-                  const randomBytes = new Uint8Array(numBytes);
-                  for (let i = 0; i < numBytes; i += 65536) {
-                      window.crypto.getRandomValues(randomBytes.subarray(i, i + Math.min(numBytes - i, 65536)));
-                  }
-                  return randomBytes;
-              };
-          }
+        function () {
+            return (numBytes: number) => {
+                const randomBytes = new Uint8Array(numBytes);
+                for (let i = 0; i < numBytes; i += 65536) {
+                    window.crypto.getRandomValues(randomBytes.subarray(i, i + Math.min(numBytes - i, 65536)));
+                }
+                return randomBytes;
+            };
+        }
         : // Node
-          function () {
-              // eslint-disable-next-line @typescript-eslint/no-var-requires
-              return require("crypto").randomBytes;
-          }
+        function () {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            return require("crypto").randomBytes;
+        }
 )();
 
 /**
@@ -689,9 +693,9 @@ export async function evaluateJsonQuery(
             const truncatedResponse = responseStr.length > 25 ? responseStr.substring(0, 25) + "...]" : responseStr;
             throw new Error(
                 "JSON query returned the array " +
-                    truncatedResponse +
-                    ", but a primitive value is required. " +
-                    "Modify your query to return a single value via [0] to get the first element or use an aggregation like $count(), $sum() or $boolean()."
+                truncatedResponse +
+                ", but a primitive value is required. " +
+                "Modify your query to return a single value via [0] to get the first element or use an aggregation like $count(), $sum() or $boolean()."
             );
         }
 

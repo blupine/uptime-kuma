@@ -38,6 +38,7 @@
                                         <option value="snmp">SNMP</option>
                                         <option value="keyword">HTTP(s) - {{ $t("Keyword") }}</option>
                                         <option value="json-query">HTTP(s) - {{ $t("Json Query") }}</option>
+                                        <option value="json-javascript">HTTP(s) - {{ $t("Json JavaScript") }}</option>
                                         <option value="grpc-keyword">gRPC(s) - {{ $t("Keyword") }}</option>
                                         <option value="dns">DNS</option>
                                         <option value="docker">
@@ -163,6 +164,7 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     monitor.type === 'real-browser'
                                 "
                                 class="my-3"
@@ -801,6 +803,15 @@
                                 </div>
                             </div>
 
+                            <!-- Json JavaScript -->
+                            <div v-if="monitor.type === 'json-javascript'" class="my-3">
+                                <label for="jsonJavascript" class="form-label">{{ $t("Json Javascript") }}</label>
+                                <CodeEditor id="jsonJavascript" v-model="monitor.jsonJavascript" />
+                                <div class="form-text" v-html="$t('jsonJavascriptDescription')">
+                                </div>
+                                <br>
+                            </div>
+
                             <!-- DNS Resolver Server -->
                             <!-- For DNS Type -->
                             <template v-if="monitor.type === 'dns'">
@@ -1006,6 +1017,15 @@
                                         class="form-control"
                                         required
                                     />
+                                </div>
+
+                                <!-- Json JavaScript -->
+                                <div v-if="monitor.type === 'json-javascript'" class="my-3">
+                                    <label for="jsonJavascript" class="form-label">{{ $t("Json Javascript") }}</label>
+                                    <CodeEditor id="jsonJavascript" v-model="monitor.jsonJavascript" />
+                                    <div class="form-text" v-html="$t('jsonJavascriptDescription')">
+                                    </div>
+                                    <br>
                                 </div>
                             </template>
 
@@ -1340,11 +1360,12 @@
                                 </div>
                             </div>
 
-                            <!-- Timeout: HTTP / JSON query / Keyword / Ping / RabbitMQ / SNMP / Websocket Upgrade only -->
+                            <!-- Timeout: HTTP / JSON query / Json JavaScript / Keyword / Ping / RabbitMQ / SNMP / Websocket Upgrade only -->
                             <div
                                 v-if="
                                     monitor.type === 'http' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'ping' ||
                                     monitor.type === 'rabbitmq' ||
@@ -1400,6 +1421,7 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     (monitor.type === 'port' &&
                                         ['starttls', 'secure'].includes(monitor.smtpSecurity)) ||
                                     (monitor.type === 'globalping' && monitor.subtype === 'http')
@@ -1490,6 +1512,7 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     monitor.type === 'redis' ||
                                     (monitor.type === 'globalping' && monitor.subtype === 'http')
                                 "
@@ -1512,6 +1535,7 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     (monitor.type === 'globalping' && monitor.subtype === 'http')
                                 "
                                 class="my-3 form-check"
@@ -1690,6 +1714,7 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript' ||
                                     monitor.type === 'grpc-keyword'
                                 "
                             >
@@ -1713,7 +1738,8 @@
                                     v-if="
                                         monitor.type === 'http' ||
                                         monitor.type === 'keyword' ||
-                                        monitor.type === 'json-query'
+                                        monitor.type === 'json-query' ||
+                                        monitor.type === 'json-javascript'
                                     "
                                     class="my-3"
                                 >
@@ -1741,7 +1767,8 @@
                                     v-if="
                                         (monitor.type === 'http' ||
                                             monitor.type === 'keyword' ||
-                                            monitor.type === 'json-query') &&
+                                            monitor.type === 'json-query' ||
+                                            monitor.type === 'json-javascript') &&
                                         monitor.saveErrorResponse
                                     "
                                     class="my-3"
@@ -1770,7 +1797,8 @@
                                     v-if="
                                         (monitor.type === 'http' ||
                                             monitor.type === 'keyword' ||
-                                            monitor.type === 'json-query') &&
+                                            monitor.type === 'json-query' ||
+                                            monitor.type === 'json-javascript') &&
                                         (monitor.saveResponse || monitor.saveErrorResponse)
                                     "
                                     class="my-3"
@@ -1936,7 +1964,8 @@
                                 v-if="
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
-                                    monitor.type === 'json-query'
+                                    monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript'
                                 "
                             >
                                 <h2 class="mt-5 mb-2">{{ $t("Proxy") }}</h2>
@@ -2081,7 +2110,8 @@
                                 v-if="
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
-                                    monitor.type === 'json-query'
+                                    monitor.type === 'json-query' ||
+                                    monitor.type === 'json-javascript'
                                 "
                             >
                                 <h2 class="mt-5 mb-2">{{ $t("HTTP Options") }}</h2>
@@ -2499,6 +2529,9 @@
                                         <option value="json-query">
                                             {{ $t("Json Query Expression") }}
                                         </option>
+                                        <option value="json-javascript">
+                                            {{ $t("Json Javascript Expression") }}
+                                        </option>
                                     </select>
                                 </div>
 
@@ -2604,6 +2637,15 @@
                                         </div>
                                     </div>
                                 </template>
+                            </template>
+
+                            <!-- Json Javascript -->
+                            <template v-if="monitor.responsecheck === 'json-javascript'">
+                                <div class="my-3">
+                                    <label for="jsonJavascript" class="form-label">{{ $t("Json Javascript") }}</label>
+                                    <CodeEditor id="jsonJavascript" v-model="monitor.jsonJavascript" />
+                                    <div class="form-text" v-html="$t('jsonJavascriptDescription')"></div>
+                                </div>
                             </template>
 
                             <!-- gRPC Options -->
@@ -2730,12 +2772,14 @@ import {
     MIN_INTERVAL_SECOND,
     sleep,
     TYPES_WITH_DOMAIN_EXPIRY_SUPPORT_VIA_FIELD,
+    JSON_JAVASCRIPT_SAMPLE
 } from "../util.ts";
 import { timeDurationFormatter } from "../util-frontend";
 import isFQDN from "validator/lib/isFQDN";
 import isIP from "validator/lib/isIP";
 import HiddenInput from "../components/HiddenInput.vue";
 import EditMonitorConditions from "../components/EditMonitorConditions.vue";
+import CodeEditor from "../components/CodeEditor.vue";
 
 const toast = useToast();
 
@@ -2796,6 +2840,7 @@ const monitorDefaults = {
     rabbitmqPassword: "",
     conditions: [],
     system_service_name: "",
+    jsonJavascript: JSON_JAVASCRIPT_SAMPLE,
 };
 
 export default {
@@ -2812,6 +2857,7 @@ export default {
         TagsManager,
         VueMultiselect,
         EditMonitorConditions,
+        CodeEditor,
     },
 
     data() {
@@ -3586,7 +3632,7 @@ message HealthCheckResponse {
 
             // Validate URL field input for various monitors
             if (
-                ["http", "keyword", "json-query", "websocket-upgrade", "real-browser"].includes(this.monitor.type) &&
+                ["http", "keyword", "json-query", "json-javascript", "websocket-upgrade", "real-browser"].includes(this.monitor.type) &&
                 this.monitor.url
             ) {
                 try {
@@ -3612,7 +3658,6 @@ message HealthCheckResponse {
                     return false;
                 }
             }
-
             return true;
         },
 
@@ -3662,7 +3707,7 @@ message HealthCheckResponse {
                 this.monitor.body = JSON.stringify(JSON.parse(this.monitor.body), null, 4);
             }
 
-            const monitorTypesWithEncodingAllowed = ["http", "keyword", "json-query"];
+            const monitorTypesWithEncodingAllowed = ["http", "keyword", "json-query", "json-javascript"];
             if (this.monitor.type && !monitorTypesWithEncodingAllowed.includes(this.monitor.type)) {
                 this.monitor.httpBodyEncoding = null;
             }

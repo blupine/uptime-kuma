@@ -901,6 +901,7 @@ let needSetup = false;
                 bean.httpBodyEncoding = monitor.httpBodyEncoding;
                 bean.expectedValue = monitor.expectedValue;
                 bean.jsonPath = monitor.jsonPath;
+                bean.jsonJavascript = monitor.jsonJavascript;
                 bean.kafkaProducerTopic = monitor.kafkaProducerTopic;
                 bean.kafkaProducerBrokers = JSON.stringify(monitor.kafkaProducerBrokers);
                 bean.kafkaProducerAllowAutoTopicCreation = monitor.kafkaProducerAllowAutoTopicCreation;
