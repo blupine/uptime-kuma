@@ -140,7 +140,8 @@ export default {
                 return (
                     this.$root.monitorList[monitor.element.id].type === "http" ||
                     this.$root.monitorList[monitor.element.id].type === "keyword" ||
-                    this.$root.monitorList[monitor.element.id].type === "json-query"
+                    this.$root.monitorList[monitor.element.id].type === "json-query" ||
+                    this.$root.monitorList[monitor.element.id].type === "json-javascript"
                 );
             }
             return (

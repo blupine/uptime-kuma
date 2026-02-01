@@ -24,6 +24,7 @@
                         monitor.type === 'http' ||
                         monitor.type === 'keyword' ||
                         monitor.type === 'json-query' ||
+                        monitor.type === 'json-javascript' ||
                         monitor.type === 'real-browser' ||
                         monitor.type === 'websocket-upgrade'
                     "
@@ -58,6 +59,10 @@
                     <br />
                     <span>{{ $t("Expected Value") }}:</span>
                     <span class="keyword">{{ monitor.expectedValue }}</span>
+                </span>
+                <span v-if="monitor.type === 'json-javascript'">
+                    <br>
+                    <span>{{ $t("Json JavaScript") }}</span>
                 </span>
                 <span v-if="monitor.type === 'dns'">
                     [{{ monitor.dns_resolve_type }}] {{ monitor.hostname }}
@@ -740,7 +745,7 @@ export default {
                 translationPrefix = "Avg. ";
             }
 
-            if (this.monitor.type === "http" || this.monitor.type === "keyword" || this.monitor.type === "json-query") {
+            if (this.monitor.type === "http" || this.monitor.type === "keyword" || this.monitor.type === "json-query" || this.monitor.type === "json-javascript") {
                 return this.$t(translationPrefix + "Response");
             }
 

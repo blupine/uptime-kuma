@@ -63,6 +63,7 @@ const zlib = require("node:zlib");
 const { promisify } = require("node:util");
 const brotliCompress = promisify(zlib.brotliCompress);
 const DomainExpiry = require("./domain_expiry");
+const vm = require("vm");
 
 const rootCertificates = rootCertificatesFingerprints();
 
@@ -100,7 +101,7 @@ class Monitor extends BeanModel {
 
         if (
             certExpiry &&
-            (this.type === "http" || this.type === "keyword" || this.type === "json-query") &&
+            (this.type === "http" || this.type === "keyword" || this.type === "json-query" || this.type === "json-javascript") &&
             this.getURLProtocol() === "https:"
         ) {
             const { certExpiryDaysRemaining, validCert } = await this.getCertExpiry(this.id);
@@ -190,6 +191,7 @@ class Monitor extends BeanModel {
             httpBodyEncoding: this.httpBodyEncoding,
             jsonPath: this.jsonPath,
             expectedValue: this.expectedValue,
+            jsonJavascript: this.jsonJavascript,
             system_service_name: this.system_service_name,
             kafkaProducerTopic: this.kafkaProducerTopic,
             kafkaProducerBrokers: JSON.parse(this.kafkaProducerBrokers),
@@ -469,7 +471,7 @@ class Monitor extends BeanModel {
                 if (await Monitor.isUnderMaintenance(this.id)) {
                     bean.msg = "Monitor under maintenance";
                     bean.status = MAINTENANCE;
-                } else if (this.type === "http" || this.type === "keyword" || this.type === "json-query") {
+                } else if (this.type === "http" || this.type === "keyword" || this.type === "json-query" || this.type === "json-javascript") {
                     // Do not do any queries/high loading things before the "bean.ping"
                     let startTime = dayjs().valueOf();
 
@@ -713,6 +715,36 @@ class Monitor extends BeanModel {
                             throw new Error(
                                 `JSON query does not pass (comparing ${response} ${this.jsonPathOperator} ${this.expectedValue})`
                             );
+                        }
+                    } else if (this.type === "json-javascript") {
+                        let data = res.data;
+                        log.info("monitor", data);
+
+                        if (typeof data === "string" && res.headers["content-type"] !== "application/json") {
+                            try {
+                                data = JSON.parse(data);
+                            } catch (_) {
+                                throw new Error(bean.msg + ", failed to parse json response, : [" + data + "]");
+                            }
+                        }
+
+                        let evaluator = `${this.jsonJavascript}\nevaluate;`;
+                        let sandbox = { console };
+                        let context = vm.createContext(sandbox);
+
+                        try {
+                            let script = new vm.Script(evaluator);
+                            let evaluateFunction = script.runInContext(context);
+                            let result = evaluateFunction(data);
+                            if (result?.success) {
+                                bean.msg += ", result of custom script is true";
+                                bean.status = UP;
+                            } else {
+                                throw new Error(bean.msg + "," + result?.message);
+                            }
+                        } catch (e) {
+                            console.log(e.message);
+                            throw e;
                         }
                     }
                 } else if (this.type === "ping") {
